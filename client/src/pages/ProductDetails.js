@@ -44,11 +44,13 @@ const ProductDetails = () => {
     <Layout>
       <div className="row container product-details">
         <div className="col-md-6">
+         
           <img
             src={`/api/v1/product/product-photo/${product._id}`}
             className="card-img-top"
+            style={{ marginTop: "90px" }}
             alt={product.name}
-            height="300"
+            height="320"
             width={"350px"}
           />
         </div>

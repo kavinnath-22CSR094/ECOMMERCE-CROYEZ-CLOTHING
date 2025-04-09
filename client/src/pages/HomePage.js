@@ -12,17 +12,26 @@ import "../styles/Homepage.css";
 const SIZES = {
   shirts: ["S", "M", "L", "XL"],
   pants: ["28", "30", "32", "34", "36"],
+  tshirts: ["S", "M", "L", "XL","XXL","XXXL"],
+  shorts: ["S", "M", "L", "XL","XXL","XXXL"],
+  tracks: ["S", "M", "L", "XL","XXL","XXXL"],
 };
 
 const COLOR = {
   shirts: ["Red", "Blue", "Green", "Black", "White",],
   pants: ["Blue", "Black", "Brown", "Grey", "White","Sandal"],
-}
+  tshirts: ["Red", "Blue", "Green", "Black", "White","Yellow","Pink"],
+  shorts: ["Black", "Blue", "Brown", "Grey", "White","Green"],
+  tracks: ["Black", "Blue", "Brown", "Grey", "White","Green"],
+};
 
 const PATTERN = {
-  shirts: ["Striped", "Solid", "Checked", "Printed"],
-  pants: ["Solid", "Checked", "Printed","Joger"],
-}
+  shirts: ["Striped", "Solid", "Checked", "Printed","Denim"],
+  pants: ["Solid", "Checked", "Printed","Joger","Jeans"],
+  tshirts: ["Round neck", "V neck", "Hooded", "Collared","Jersey"],
+  shorts: ["Cotton","Nylon","Denim"],
+  tracks: ["Cotton","Sports"],
+};
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -103,10 +112,16 @@ const HomePage = () => {
     setChecked([id]); // Only one category can be selected at a time
 
     // Determine if the selected category is shirts or pants
-    if (name.toLowerCase().includes("shirt")) {
-      setData("shirts");
+    if (name.toLowerCase().includes("tshirt")) {
+      setData("tshirts");
     } else if (name.toLowerCase().includes("pant")) {
       setData("pants");
+    } else if (name.toLowerCase().includes("shirt")) {
+      setData("shirts");
+    } else if (name.toLowerCase().includes("short")) {
+      setData("shorts");
+    } else if (name.toLowerCase().includes("track")) {
+      setData("tracks");
     }
   };
 
@@ -181,10 +196,11 @@ const HomePage = () => {
     <Layout title={"All Products - Best offers"}>
       {/* Banner Image */}
       <img
-        src="/images/banner.png"
+        src="/images/croyez.jpg"
         className="banner-img"
         alt="bannerimage"
         width={"100%"}
+        height={"300px"}
       />
 
       <div className="container-fluid row mt-3 home-page">
