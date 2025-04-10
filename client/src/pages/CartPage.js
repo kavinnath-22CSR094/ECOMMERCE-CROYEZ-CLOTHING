@@ -73,8 +73,9 @@ const CartPage = () => {
       navigate("/dashboard/user/orders");
       toast.success("Payment Completed Successfully");
     } catch (error) {
-      console.log(error);
+      console.error("Error in handlePayment:", error);
       setLoading(false);
+      toast.error("Payment Failed");
     }
   };
 
