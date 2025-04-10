@@ -375,10 +375,13 @@ export const brainTreePaymentController = async (req, res) => {
   try {
     const { nonce, cart } = req.body;
     let total = 0;
+
+    // Calculate total price
     cart.forEach((item) => {
       total += item.price;
     });
 
+    // Create a new transaction
     const newTransaction = await gateway.transaction.sale({
       amount: total,
       paymentMethodNonce: nonce,
@@ -400,11 +403,11 @@ export const brainTreePaymentController = async (req, res) => {
       });
     }
   } catch (error) {
-    console.log("Error in handlePayment:", error);
+    console.error("Error in brainTreePaymentController:", error);
     res.status(500).send({
       success: false,
       message: "Error in processing payment",
-      error,
+      error: error.message,
     });
   }
 };
