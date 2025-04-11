@@ -4,9 +4,13 @@ import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/ProductDetailsStyles.css";
 
+import toast from "react-hot-toast";
+import { useCart } from "../context/cart";
 const ProductDetails = () => {
   const params = useParams();
   const navigate = useNavigate();
+  
+  const [cart, setCart] = useCart();
   const [product, setProduct] = useState({});
   const [relatedProducts, setRelatedProducts] = useState([]);
 
@@ -70,7 +74,15 @@ const ProductDetails = () => {
           <h6>Size : {product.size}</h6>
           <h6>Color : {product.color}</h6>
           <h6>Pattern : {product.pattern}</h6>
-          <button class="btn btn-secondary ms-1">ADD TO CART</button>
+          <button className="btn btn-dark ms-1"
+                      onClick={() => {
+                        setCart([...cart, product]);
+                        localStorage.setItem(
+                          "cart",
+                          JSON.stringify([...cart, product])
+                        );
+                        toast.success("Item Added to cart");
+                      }}>ADD TO CART</button>
         </div>
       </div>
       <hr />
@@ -93,7 +105,7 @@ const ProductDetails = () => {
                   <h5 className="card-title card-price">
                     {p.price.toLocaleString("en-US", {
                       style: "currency",
-                      currency: "INR",
+                      currency: "USD",
                     })}
                   </h5>
                 </div>
