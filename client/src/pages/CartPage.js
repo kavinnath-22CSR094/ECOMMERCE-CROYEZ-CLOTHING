@@ -68,15 +68,22 @@ const CartPage = () => {
         cart,
       });
       setLoading(false);
-      localStorage.removeItem("cart");
-      setCart([]);
-      navigate("/dashboard/user/orders");
-      toast.success("Payment Completed Successfully ");
+
+      if (data?.success) {
+        localStorage.removeItem("cart");
+        setCart([]);
+        navigate("/dashboard/user/orders");
+        toast.success("Payment Completed Successfully");
+      } else {
+        toast.error(data?.message || "Payment Failed");
+      }
     } catch (error) {
-      console.log(error);
+      console.error("Error in handlePayment:", error);
       setLoading(false);
+      toast.error("Payment Failed");
     }
   };
+
   return (
     <Layout>
       <div className=" cart-page">

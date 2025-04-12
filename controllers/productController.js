@@ -391,10 +391,19 @@ export const brainTreePaymentController = async (req, res) => {
     });
 
     if (newTransaction.success) {
+      // Save the order to the database
+      const order = new orderModel({
+        products: cart,
+        payment: newTransaction,
+        buyer: req.user._id, // Assuming `req.user` contains the logged-in user's ID
+      });
+      await order.save();
+
       res.status(200).send({
         success: true,
-        message: "Payment Completed Successfully",
+        message: "Payment Completed Successfully and Order Added",
         transaction: newTransaction,
+        order,
       });
     } else {
       res.status(500).send({
