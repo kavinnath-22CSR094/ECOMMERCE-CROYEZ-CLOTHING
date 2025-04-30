@@ -196,11 +196,11 @@ const HomePage = () => {
     <Layout title={"All Products - Best offers"}>
       {/* Banner Image */}
       <img
-        src="/images/croyez.jpg"
+        src="/images/croyez1.jpg"
         className="banner-img"
         alt="bannerimage"
         width={"100%"}
-        height={"300px"}
+        height={"600px"}
       />
 
       <div className="container-fluid row mt-3 home-page">
