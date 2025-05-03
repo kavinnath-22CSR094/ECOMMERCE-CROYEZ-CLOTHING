@@ -21,8 +21,8 @@ const CartPage = () => {
   const totalPrice = () => {
     try {
       let total = 0;
-      cart?.map((item) => {
-        total = total + item.price;
+      cart?.forEach((item) => {
+        total += item.product.price * item.quantity;
       });
       return total.toLocaleString("en-US", {
         style: "currency",
@@ -33,15 +33,30 @@ const CartPage = () => {
     }
   };
   //detele item
-  const removeCartItem = (pid) => {
+  const removeCartItem = async (pid) => {
     try {
-      let myCart = [...cart];
-      let index = myCart.findIndex((item) => item._id === pid);
-      myCart.splice(index, 1);
-      setCart(myCart);
-      localStorage.setItem("cart", JSON.stringify(myCart));
+      const { data } = await axios.delete(`/api/v1/user/cart/remove/${pid}`, {
+        headers: {
+          Authorization: `Bearer ${auth.token}`
+        }
+      });
+      
+      if (data?.success) {
+        // Corrected filter condition
+        setCart(cart.filter((item) => item.product._id !== pid));
+        toast.success("Item removed from cart");
+        
+        // Optional: Refresh cart from server to ensure sync
+        const { data: updatedCart } = await axios.get("/api/v1/user/cart", {
+          headers: {
+            Authorization: `Bearer ${auth.token}`
+          }
+        });
+        setCart(updatedCart.cart);
+      }
     } catch (error) {
-      console.log(error);
+      console.error("Remove item error:", error.response?.data || error.message);
+      toast.error(error.response?.data?.message || "Failed to remove item");
     }
   };
 
@@ -54,26 +69,54 @@ const CartPage = () => {
       console.log(error);
     }
   };
+
   useEffect(() => {
     getToken();
   }, [auth?.token]);
+
 
   //handle payments
   const handlePayment = async () => {
     try {
       setLoading(true);
+      
+      // 1. Get payment method nonce
       const { nonce } = await instance.requestPaymentMethod();
-      const { data } = await axios.post("/api/v1/product/braintree/payment", {
+      if (!nonce) {
+        throw new Error("No payment nonce received");
+      }
+      console.log("Received nonce:", nonce); // Should start with "tokencc_"
+  
+      // 2. Prepare payment data
+      const paymentData = {
         nonce,
-        cart,
-      });
-      setLoading(false);
-      localStorage.removeItem("cart");
-      setCart([]);
-      navigate("/dashboard/user/orders");
-      toast.success("Payment Completed Successfully ");
+        cart: cart.map(item => ({
+          product: item.product._id,
+          quantity: item.quantity
+        })),
+        amount: totalPrice() // Calculate from cart
+      };
+  
+      // 3. Submit payment
+      const { data } = await axios.post(
+        "/api/v1/product/braintree/payment",
+        paymentData,
+        {
+          headers: {
+            Authorization: `Bearer ${auth.token}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+  
+      // ... handle success ...
     } catch (error) {
-      console.log(error);
+      console.error("Payment error details:", {
+        nonceError: error.message,
+        response: error.response?.data
+      });
+      toast.error(error.response?.data?.message || "Invalid payment information");
+    } finally {
       setLoading(false);
     }
   };
@@ -99,29 +142,30 @@ const CartPage = () => {
         <div className="container ">
           <div className="row ">
             <div className="col-md-7  p-0 m-0">
-              {cart?.map((p) => (
-                <div className="row card flex-row" key={p._id}>
-                  <div className="col-md-4">
-                    <img
-                      src={`/api/v1/product/product-photo/${p._id}`}
-                      className="card-img-top"
-                      alt={p.name}
-                      width="100%"
-                      height={"130px"}
-                    />
-                  </div>
-                  <div className="col-md-4">
-                    <p>{p.name}</p>
-                    <p>{p.description.substring(0, 30)}</p>
-                    <p>Price : {p.price}</p>
-                  </div>
-                  <div className="col-md-4 cart-remove-btn">
-                    <button
-                      className="btn btn-danger"
-                      onClick={() => removeCartItem(p._id)}
-                    >
-                      Remove
-                    </button>
+            {cart?.map((item) => (
+          <div className="row card flex-row" key={item.product._id}>
+            <div className="col-md-4">
+              <img
+                src={`/api/v1/product/product-photo/${item.product._id}`}
+                className="card-img-top"
+                alt={item.product.name}
+                width="100%"
+                height={"130px"}
+              />
+            </div>
+            <div className="col-md-4">
+              <p>{item.product.name}</p>
+              <p>{item.product.description.substring(0, 30)}</p>
+              <p>Price: {item.product.price}</p>
+              <p>Quantity: {item.quantity}</p>
+            </div>
+            <div className="col-md-4 cart-remove-btn">
+              <button
+                className="btn btn-danger"
+                onClick={() => removeCartItem(item.product._id)}
+              >
+                Remove
+              </button>
                   </div>
                 </div>
               ))}

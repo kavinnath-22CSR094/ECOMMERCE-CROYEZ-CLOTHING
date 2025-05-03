@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import Layout from "./../components/Layout/Layout";
 import { AiOutlineReload } from "react-icons/ai";
 import "../styles/Homepage.css";
+import { useAuth } from "../context/auth"; 
 
 const SIZES = {
   shirts: ["S", "M", "L", "XL"],
@@ -47,6 +48,7 @@ const HomePage = () => {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState("shirts"); // Default to shirts
+  const [auth,setAuth] = useAuth();
 
   // Get all categories
   const getAllCategory = async () => {
@@ -144,7 +146,7 @@ const HomePage = () => {
     if (e.target.checked) {
       updatedColors.push(color);
     } else {
-      updatedColors = updatedColors.filter((c) => c !== color);
+      updatedColors = updatedColors.filter((c) => c === color);
     }
     setColors(updatedColors);
   };
@@ -190,7 +192,44 @@ const HomePage = () => {
     } catch (error) {
       console.log("Error filtering products:", error);
     }
+  };  
+
+  // In your HomePage.js or wherever you're adding to cart
+  const HandleAddToCart = async (product) => {
+    try {
+      if (!auth?.user) {
+        toast.error("Please login to add items to cart");
+        navigate("/login", { state: { from: "http://localhost:3000/login" } });
+        return;
+      }
+  
+      const { data } = await axios.post(
+        "/api/v1/user/cart/add",
+        { product: product._id, quantity: 1 },
+        {
+          headers: {
+            Authorization: `Bearer ${auth.token}`,
+          },
+        }
+      );
+  
+      if (data?.success) {
+        setCart(data.cart);
+        toast.success(`${product.name} added to cart`);
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      if (error.response?.status === 401) {
+        toast.error("Session expired. Please login again");
+        localStorage.removeItem("auth");
+        setAuth(null);
+        navigate("/login");
+      } else {
+        toast.error("Failed to add item to cart");
+      }
+    }
   };
+
 
   return (
     <Layout title={"All Products - Best offers"}>
@@ -325,18 +364,11 @@ const HomePage = () => {
                       More Details
                     </button>
                     <button
-                      className="btn btn-dark ms-1"
-                      onClick={() => {
-                        setCart([...cart, p]);
-                        localStorage.setItem(
-                          "cart",
-                          JSON.stringify([...cart, p])
-                        );
-                        toast.success("Item Added to cart");
-                      }}
-                    >
-                      ADD TO CART
-                    </button>
+        className="btn btn-dark ms-1"
+        onClick={() => HandleAddToCart(p)}
+      >
+        ADD TO CART
+      </button>
                   </div>
                 </div>
               </div>

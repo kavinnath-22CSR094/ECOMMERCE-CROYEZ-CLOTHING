@@ -106,49 +106,52 @@ export const mergeCartController = async (req, res) => {
   }
 };
 export const addToCartController = async (req, res) => {
-    try {
-      const { product, quantity = 1 } = req.body;
-      const user = await userModel.findById(req.user._id);
-  
-      // Check if product exists
-      const productExists = await productModel.findById(product);
-      if (!productExists) {
-        return res.status(404).send({
-          success: false,
-          message: "Product not found"
-        });
-      }
-  
-      // Check if product already in cart
-      const existingItemIndex = user.cart.findIndex(
-        item => item.product.toString() === product
-      );
-  
-      if (existingItemIndex >= 0) {
-        // Update quantity if already exists
-        user.cart[existingItemIndex].quantity += quantity;
-      } else {
-        // Add new item
-        user.cart.push({ product, quantity });
-      }
-  
-      await user.save();
-      const populatedUser = await user.populate("cart.product");
-  
-      res.status(200).send({
-        success: true,
-        message: "Item added to cart",
-        cart: populatedUser.cart
-      });
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-      res.status(500).send({
-        success: false,
-        message: "Error adding to cart",
-        error: error.message
-      });
+  try {
+    console.log("Incoming cart add request:", req.body); // Log incoming data
+    
+    const { product, quantity = 1 } = req.body;
+    const user = await userModel.findById(req.user._id);
+    console.log("Found user:", user._id); // Verify user exists
+
+    const productExists = await productModel.findById(product);
+    if (!productExists) {
+      console.log("Product not found:", product);
+      return res.status(404).send({ success: false, message: "Product not found" });
     }
-  };
+
+    // Cart update logic
+    const existingIndex = user.cart.findIndex(
+      item => item.product.toString() === product
+    );
+
+    if (existingIndex >= 0) {
+      user.cart[existingIndex].quantity += quantity;
+      console.log("Updated existing cart item");
+    } else {
+      user.cart.push({ product, quantity });
+      console.log("Added new cart item");
+    }
+
+    const savedUser = await user.save();
+    console.log("Saved user document:", savedUser); // Verify save operation
+
+    const populatedUser = await userModel.findById(user._id)
+      .populate("cart.product");
+    
+    res.status(200).send({
+      success: true,
+      message: `${productExists.name} added to cart`,
+      cart: populatedUser.cart
+    });
+  } catch (error) {
+    console.error("Database save error:", error);
+    res.status(500).send({
+      success: false,
+      message: "Error saving to database",
+      error: error.message
+    });
+  }
+};
   
   // Remove item from cart
   export const removeFromCartController = async (req, res) => {
@@ -156,20 +159,20 @@ export const addToCartController = async (req, res) => {
       const { productId } = req.params;
       const user = await userModel.findByIdAndUpdate(
         req.user._id,
-        { $pull: { cart: { product: productId } } },
+        { $pull: { cart: { product: productId } }},
         { new: true }
       ).populate("cart.product");
   
-      res.status(200).send({
+      res.status(200).json({
         success: true,
         message: "Item removed from cart",
         cart: user.cart
       });
     } catch (error) {
-      console.error("Error removing from cart:", error);
-      res.status(500).send({
+      console.error("Remove error:", error);
+      res.status(500).json({
         success: false,
-        message: "Error removing from cart",
+        message: "Error removing item",
         error: error.message
       });
     }
