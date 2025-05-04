@@ -6,6 +6,7 @@ export const getCartController = async (req, res) => {
     const user = await userModel.findById(req.user._id).populate("cart.product");
     res.status(200).send({
       success: true,
+      userId: user._id,
       cart: user.cart,
     });
   } catch (error) {
@@ -141,7 +142,8 @@ export const addToCartController = async (req, res) => {
     res.status(200).send({
       success: true,
       message: `${productExists.name} added to cart`,
-      cart: populatedUser.cart
+      cart: populatedUser.cart,
+      userId: populatedUser._id,
     });
   } catch (error) {
     console.error("Database save error:", error);

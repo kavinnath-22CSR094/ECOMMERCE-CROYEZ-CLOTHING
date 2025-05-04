@@ -19,7 +19,7 @@ var gateway = new braintree.BraintreeGateway({
 
 export const createProductController = async (req, res) => {
   try {
-    const { name, description, price, category, quantity, shipping, size, color, pattern } = req.fields;
+    const { name, description, price, category, quantity, shipping, size, color, pattern, brand } = req.fields;
     const { photo } = req.files;
 
     // Validation
@@ -40,6 +40,8 @@ export const createProductController = async (req, res) => {
         return res.status(500).send({ error: "Color is Required" });
       case !pattern:
         return res.status(500).send({ error: "Pattern is Required" });
+      case !brand:
+        return res.status(500).send({ error: "Brand is Required" });
       case photo && photo.size > 1000000:
         return res.status(500).send({ error: "Photo is Required and should be less than 1MB" });
     }
@@ -153,7 +155,7 @@ export const deleteProductController = async (req, res) => {
 //upate producta
 export const updateProductController = async (req, res) => {
   try {
-    const { name, description, price, category, quantity, shipping, size, color, pattern } = req.fields;
+    const { name, description, price, category, quantity, shipping, size, color, pattern , brand} = req.fields;
     const { photo } = req.files;
 
     // Validation
@@ -174,6 +176,8 @@ export const updateProductController = async (req, res) => {
         return res.status(500).send({ error: "Color is Required" });
       case !pattern:
         return res.status(500).send({ error: "Pattern is Required" });
+      case !brand:
+        return res.status(500).send({ error: "Brand is Required" });
       case photo && photo.size > 1000000:
         return res.status(500).send({ error: "Photo is Required and should be less than 1MB" });
     }
@@ -208,7 +212,7 @@ export const updateProductController = async (req, res) => {
 // filters
 export const productFiltersController = async (req, res) => {
   try {
-    const { checked = [], sizes = [], colors = [], patterns = [], radio = [] } = req.body;
+    const { checked = [], sizes = [], colors = [], patterns = [], brands=[], radio = [] } = req.body;
     let filterConditions = {};
 
     if (checked.length > 0) {
@@ -222,6 +226,9 @@ export const productFiltersController = async (req, res) => {
     }
     if (patterns.length > 0) {
       filterConditions.pattern = { $in: patterns };
+    }
+    if (brands.length > 0) {
+      filterConditions.brand = { $in: brands };
     }
     if (radio.length === 2) {
       filterConditions.price = { $gte: radio[0], $lte: radio[1] };

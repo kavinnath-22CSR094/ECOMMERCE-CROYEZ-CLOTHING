@@ -40,7 +40,7 @@ const Orders = () => {
                   <table className="table">
                     <thead>
                       <tr>
-                        <th scope="col">#</th>
+                        <th scope="col">NO</th>
                         <th scope="col">Status</th>
                         <th scope="col">Buyer</th>
                         <th scope="col">Address</th>

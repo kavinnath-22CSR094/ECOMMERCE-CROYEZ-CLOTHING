@@ -74,6 +74,7 @@ const ProductDetails = () => {
           <h6>Size : {product.size}</h6>
           <h6>Color : {product.color}</h6>
           <h6>Pattern : {product.pattern}</h6>
+          <h6>Brand : {product.brand}</h6>
           <button className="btn btn-dark ms-1"
                       onClick={() => {
                         setCart([...cart, product]);

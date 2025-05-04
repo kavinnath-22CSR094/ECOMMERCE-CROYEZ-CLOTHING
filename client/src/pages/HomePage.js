@@ -34,6 +34,14 @@ const PATTERN = {
   tracks: ["Cotton","Sports"],
 };
 
+const BRAND = {
+  shirts: ["Black letter","Logoff","SO-ME","Krimty","Zara","Wild Studio"],
+  pants: ["Black letter","Duster Blue","Wood Machine","Boulter"],
+  tshirts: ["Technosports","Blk Bull","You Turn","Thanabat","Pointer"],
+  shorts: ["Technosports","ASICS","Boulter","Newzy"],
+  tracks: ["Technosports","Lookkint"],
+};
+
 const HomePage = () => {
   const navigate = useNavigate();
   const [cart, setCart] = useCart();
@@ -49,6 +57,7 @@ const HomePage = () => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState("shirts"); // Default to shirts
   const [auth,setAuth] = useAuth();
+  const[brands,setBrands] = useState([]);
 
   // Get all categories
   const getAllCategory = async () => {
@@ -163,6 +172,18 @@ const HomePage = () => {
     setPatterns(updatedPatterns);
   };
 
+  // Handle brand filter
+  const handleBrandFilter = (e, brand) => {
+    e.preventDefault();
+    let updatedBrands = [...brands];
+    if (e.target.checked) {
+      updatedBrands.push(brand);
+    } else {
+      updatedBrands = updatedBrands.filter((b) => b !== brand);
+    }
+    setBrands(updatedBrands);
+  };
+
   // Handle price filter
   const handlePriceFilter = (e) => {
     e.preventDefault();
@@ -171,12 +192,12 @@ const HomePage = () => {
 
   // Call API when filters change
   useEffect(() => {
-    if (checked.length === 0 && sizes.length === 0 && colors.length === 0 && patterns.length === 0 && radio.length === 0) {
+    if (checked.length === 0 && sizes.length === 0 && colors.length === 0 && patterns.length === 0 && brands.length === 0 && radio.length === 0) {
       getAllProducts();
     } else {
       filterProduct();
     }
-  }, [checked, sizes, colors, patterns, radio]);
+  }, [checked, sizes, colors, patterns, brands, radio]);
 
   // Get filtered products
   const filterProduct = async () => {
@@ -186,6 +207,7 @@ const HomePage = () => {
         sizes,
         colors,
         patterns,
+        brands,
         radio,
       });
       setProducts(data?.products);
@@ -302,6 +324,20 @@ const HomePage = () => {
             ))}
           </div>
 
+          {/* Brand Filter */}
+          <h4 className="text-center mt-4">Filter By Brand</h4>
+          <div className="d-flex flex-column">
+            {BRAND[data].map((brand) => (
+              <Checkbox
+                key={brand}
+                onChange={(e) => handleBrandFilter(e, brand)}
+                checked={brands.includes(brand)}
+              >
+                {brand}
+              </Checkbox>
+            ))}
+          </div>
+
           {/* Price Filter */}
           <h4 className="text-center mt-4">Filter By Price</h4>
           <div className="d-flex flex-column">
@@ -323,6 +359,7 @@ const HomePage = () => {
                 setSizes([]);
                 setColors([]);
                 setPatterns([]);
+                setBrands([]);
                 setRadio([]);
                 getAllProducts();
               }}
