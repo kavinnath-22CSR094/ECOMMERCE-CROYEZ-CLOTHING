@@ -98,8 +98,7 @@ const CartPage = () => {
       };
   
       // 3. Submit payment
-      const { data } = await axios.post(
-        "/api/v1/product/braintree/payment",
+      const { data } = await axios.post("/api/v1/product/braintree/payment",
         paymentData,
         {
           headers: {
