@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import Layout from "./../components/Layout/Layout";
 import { AiOutlineReload } from "react-icons/ai";
 import "../styles/Homepage.css";
+import { useAuth } from "../context/auth"; 
 
 const SIZES = {
   shirts: ["S", "M", "L", "XL"],
@@ -33,6 +34,14 @@ const PATTERN = {
   tracks: ["Cotton","Sports"],
 };
 
+const BRAND = {
+  shirts: ["Black letter","Logoff","SO-ME","Krimty","Zara","Wild Studio"],
+  pants: ["Black letter","Duster Blue","Wood Machine","Boulter"],
+  tshirts: ["Technosports","Blk Bull","You Turn","Thanabat","Pointer"],
+  shorts: ["Technosports","ASICS","Boulter","Newzy"],
+  tracks: ["Technosports","Lookkint"],
+};
+
 const HomePage = () => {
   const navigate = useNavigate();
   const [cart, setCart] = useCart();
@@ -47,6 +56,8 @@ const HomePage = () => {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState("shirts"); // Default to shirts
+  const [auth,setAuth] = useAuth();
+  const[brands,setBrands] = useState([]);
 
   // Get all categories
   const getAllCategory = async () => {
@@ -144,7 +155,7 @@ const HomePage = () => {
     if (e.target.checked) {
       updatedColors.push(color);
     } else {
-      updatedColors = updatedColors.filter((c) => c !== color);
+      updatedColors = updatedColors.filter((c) => c === color);
     }
     setColors(updatedColors);
   };
@@ -161,6 +172,18 @@ const HomePage = () => {
     setPatterns(updatedPatterns);
   };
 
+  // Handle brand filter
+  const handleBrandFilter = (e, brand) => {
+    e.preventDefault();
+    let updatedBrands = [...brands];
+    if (e.target.checked) {
+      updatedBrands.push(brand);
+    } else {
+      updatedBrands = updatedBrands.filter((b) => b !== brand);
+    }
+    setBrands(updatedBrands);
+  };
+
   // Handle price filter
   const handlePriceFilter = (e) => {
     e.preventDefault();
@@ -169,12 +192,12 @@ const HomePage = () => {
 
   // Call API when filters change
   useEffect(() => {
-    if (checked.length === 0 && sizes.length === 0 && colors.length === 0 && patterns.length === 0 && radio.length === 0) {
+    if (checked.length === 0 && sizes.length === 0 && colors.length === 0 && patterns.length === 0 && brands.length === 0 && radio.length === 0) {
       getAllProducts();
     } else {
       filterProduct();
     }
-  }, [checked, sizes, colors, patterns, radio]);
+  }, [checked, sizes, colors, patterns, brands, radio]);
 
   // Get filtered products
   const filterProduct = async () => {
@@ -184,13 +207,51 @@ const HomePage = () => {
         sizes,
         colors,
         patterns,
+        brands,
         radio,
       });
       setProducts(data?.products);
     } catch (error) {
       console.log("Error filtering products:", error);
     }
+  };  
+
+  // In your HomePage.js or wherever you're adding to cart
+  const HandleAddToCart = async (product) => {
+    try {
+      if (!auth?.user) {
+        toast.error("Please login to add items to cart");
+        navigate("/login", { state: { from: "http://localhost:3000/login" } });
+        return;
+      }
+  
+      const { data } = await axios.post(
+        "/api/v1/user/cart/add",
+        { product: product._id, quantity: 1 },
+        {
+          headers: {
+            Authorization: `Bearer ${auth.token}`,
+          },
+        }
+      );
+  
+      if (data?.success) {
+        setCart(data.cart);
+        toast.success(`${product.name} added to cart`);
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      if (error.response?.status === 401) {
+        toast.error("Session expired. Please login again");
+        localStorage.removeItem("auth");
+        setAuth(null);
+        navigate("/login");
+      } else {
+        toast.error("Failed to add item to cart");
+      }
+    }
   };
+
 
   return (
     <Layout title={"All Products - Best offers"}>
@@ -263,6 +324,20 @@ const HomePage = () => {
             ))}
           </div>
 
+          {/* Brand Filter */}
+          <h4 className="text-center mt-4">Filter By Brand</h4>
+          <div className="d-flex flex-column">
+            {BRAND[data].map((brand) => (
+              <Checkbox
+                key={brand}
+                onChange={(e) => handleBrandFilter(e, brand)}
+                checked={brands.includes(brand)}
+              >
+                {brand}
+              </Checkbox>
+            ))}
+          </div>
+
           {/* Price Filter */}
           <h4 className="text-center mt-4">Filter By Price</h4>
           <div className="d-flex flex-column">
@@ -284,6 +359,7 @@ const HomePage = () => {
                 setSizes([]);
                 setColors([]);
                 setPatterns([]);
+                setBrands([]);
                 setRadio([]);
                 getAllProducts();
               }}
@@ -325,18 +401,11 @@ const HomePage = () => {
                       More Details
                     </button>
                     <button
-                      className="btn btn-dark ms-1"
-                      onClick={() => {
-                        setCart([...cart, p]);
-                        localStorage.setItem(
-                          "cart",
-                          JSON.stringify([...cart, p])
-                        );
-                        toast.success("Item Added to cart");
-                      }}
-                    >
-                      ADD TO CART
-                    </button>
+        className="btn btn-dark ms-1"
+        onClick={() => HandleAddToCart(p)}
+      >
+        ADD TO CART
+      </button>
                   </div>
                 </div>
               </div>

@@ -3,8 +3,10 @@ import Layout from "./../../components/Layout/Layout";
 import AdminMenu from "./../../components/Layout/AdminMenu";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { useAuth } from "../../context/auth";
 import { Select } from "antd";
 import { useNavigate } from "react-router-dom";
+import { p } from "framer-motion/client";
 const { Option } = Select;
 
 const CreateProduct = () => {
@@ -20,6 +22,8 @@ const CreateProduct = () => {
   const [size, setSize] = useState("");
   const [color, setColor] = useState("");
   const [pattern, setPattern] = useState("");
+  const [brand, setBrand] = useState("");
+  const [auth, setAuth] = useAuth();
 
   // Get all category
   const getAllCategory = async () => {
@@ -35,8 +39,8 @@ const CreateProduct = () => {
   };
 
   useEffect(() => {
-    getAllCategory();
-  }, []);
+    if (auth?.token)getAllCategory();
+  }, [auth?.token]);
 
   // Create product function
   const handleCreate = async (e) => {
@@ -52,9 +56,17 @@ const CreateProduct = () => {
       productData.append("size", size);
       productData.append("color", color);
       productData.append("pattern", pattern);
+      productData.append("brand", brand);
+
+      console.log("auth?.token", auth?.token);
       const { data } = await axios.post(
         "/api/v1/product/create-product",
-        productData
+        productData,
+      {
+        headers: {
+          Authorization: `Bearer ${auth?.token}`, // Include token
+        },
+      }
       );
       if (data?.success) {
         
@@ -183,6 +195,17 @@ const CreateProduct = () => {
                   onChange={(e) => setPattern(e.target.value)}
                 />
               </div>
+
+                <div className="mb-3">
+                <input
+                  type="text"
+                  value={brand}
+                  placeholder="write a brand"
+                  className="form-control"
+                  onChange={(e) => setBrand(e.target.value)}
+                />
+              </div>
+
               <div className="mb-3">
                 <Select
                   bordered={false}

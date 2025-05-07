@@ -206,15 +206,22 @@ export const getOrdersController = async (req, res) => {
   try {
     const orders = await orderModel
       .find({ buyer: req.user._id })
-      .populate("products", "-photo")
-      .populate("buyer", "name");
-    res.json(orders);
+      .populate("buyer", "name email address") // Populate buyer details
+      .populate("amount")
+      .populate("products", "name price") // Populate product details
+      .lean();
+
+
+    res.status(200).send({
+      success: true,
+      orders,
+    });
   } catch (error) {
-    console.log(error);
+    console.error("Error fetching orders:", error);
     res.status(500).send({
       success: false,
-      message: "Error WHile Geting Orders",
-      error,
+      message: "Error fetching orders",
+      error: error.message,
     });
   }
 };
@@ -223,16 +230,23 @@ export const getAllOrdersController = async (req, res) => {
   try {
     const orders = await orderModel
       .find({})
-      .populate("products", "-photo")
-      .populate("buyer", "name")
-      .sort({ createdAt: "-1" });
-    res.json(orders);
+      .populate("buyer", "name email address") // Populate buyer details
+      .populate("amount")
+      .populate("products", "name price") // Populate product details
+      .sort({ createdAt: -1 }) // Sort by createdAt in descending order
+      .lean();
+
+
+    res.status(200).send({
+      success: true,
+      orders,
+    });
   } catch (error) {
-    console.log(error);
+    console.error("Error fetching orders:", error);
     res.status(500).send({
       success: false,
-      message: "Error WHile Geting Orders",
-      error,
+      message: "Error fetching orders",
+      error: error.message,
     });
   }
 };

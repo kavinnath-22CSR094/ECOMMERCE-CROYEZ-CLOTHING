@@ -155,7 +155,7 @@ export const deleteProductController = async (req, res) => {
 //upate producta
 export const updateProductController = async (req, res) => {
   try {
-    const { name, description, price, category, quantity, shipping, size, color, pattern , brand} = req.fields;
+    const { name, description, price, category, quantity, shipping, size, color, pattern, brand } = req.fields;
     const { photo } = req.files;
 
     // Validation
@@ -212,7 +212,7 @@ export const updateProductController = async (req, res) => {
 // filters
 export const productFiltersController = async (req, res) => {
   try {
-    const { checked = [], sizes = [], colors = [], patterns = [], brands=[], radio = [] } = req.body;
+    const { checked = [], sizes = [], colors = [], patterns = [], brands = [], radio = [] } = req.body;
     let filterConditions = {};
 
     if (checked.length > 0) {
@@ -224,7 +224,7 @@ export const productFiltersController = async (req, res) => {
     if (colors.length > 0) {
       filterConditions.color = { $in: colors };
     }
-    if (patterns.length > 0) {
+    if (s.length > 0) {
       filterConditions.pattern = { $in: patterns };
     }
     if (brands.length > 0) {
@@ -383,34 +383,33 @@ export const braintreePaymentController = async (req, res) => {
     const { nonce, cart } = req.body;
 
     console.log("Received cart:", cart);
+     // Fetch product prices from the database
+const productIds = cart.map((item) => item.product);
+const products = await productModel.find({ _id: { $in: productIds } });
 
-    // Fetch product prices from the database
-    const productIds = cart.map((item) => item.product);
-    const products = await productModel.find({ _id: { $in: productIds } });
+// Map product prices to the cart
+const cartWithPrices = cart.map((item) => {
+  const product = products.find((p) => p._id.toString() === item.product);
+  if (!product) {
+    throw new Error(`Product with ID ${item.product} not found`);
+  }
+  return { ...item, price: product.price };
+});
 
-    // Map product prices to the cart
-    const cartWithPrices = cart.map((item) => {
-      const product = products.find((p) => p._id.toString() === item.product);
-      if (!product) {
-        throw new Error(`Product with ID ${item.product} not found`);
-      }
-      return { ...item, price: product.price };
-    });
+console.log("Cart with prices:", cartWithPrices);
 
-    console.log("Cart with prices:", cartWithPrices);
-
-    cartWithPrices.forEach((item) => {
-      if (typeof item.price !== "number" || typeof item.quantity !== "number") {
-        throw new Error(`Invalid cart item: ${JSON.stringify(item)}`);
-      }
-    });
-
-    // Calculate amount from cart
-    const calculateTotal = (cart) => {
-      return cart.reduce((total, item) => total + item.price * item.quantity, 0);
-    };
-    const amount = calculateTotal(cartWithPrices);
-    console.log("Calculated amount:", amount);
+cartWithPrices.forEach((item) => {
+  if (typeof item.price !== "number" || typeof item.quantity !== "number") {
+    throw new Error(`Invalid cart item: ${JSON.stringify(item)}`);
+  }
+});
+ 
+     // Calculate amount from cart
+     const calculateTotal = (cart) => {
+       return cart.reduce((total, item) => total + item.price * item.quantity, 0);
+     };
+     const amount = calculateTotal(cartWithPrices);
+     console.log("Calculated amount:", amount);
 
     // Validate nonce
     if (!nonce || typeof nonce !== "string" || !nonce.startsWith("tokencc_")) {
@@ -421,6 +420,7 @@ export const braintreePaymentController = async (req, res) => {
       });
     }
 
+   
     // Validate amount
     if (isNaN(amount)) {
       return res.status(400).json({
@@ -446,6 +446,8 @@ export const braintreePaymentController = async (req, res) => {
       },
     });
 
+    
+
     if (!result.success) {
       return res.status(400).json({
         success: false,
@@ -454,21 +456,10 @@ export const braintreePaymentController = async (req, res) => {
       });
     }
 
-    // Save order to the database
-    const order = new orderModel({
-      products: cartWithPrices, // Includes product, quantity, and price
-      transactionId: result.transaction.id,
-      amount,
-      buyer: req.user._id, // Assuming `req.user` is populated by authentication middleware
-    });
-
-    await order.save();
-
     res.status(200).json({
       success: true,
-      message: "Payment processed successfully and order saved",
+      message: "Payment processed successfully",
       transaction: result.transaction,
-      order,
     });
   } catch (error) {
     console.error("Payment processing error:", error);

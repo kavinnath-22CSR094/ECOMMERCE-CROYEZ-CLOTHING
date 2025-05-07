@@ -10,10 +10,15 @@ const Orders = () => {
   const [auth, setAuth] = useAuth();
   const getOrders = async () => {
     try {
-      const { data } = await axios.get("/api/v1/auth/orders");
-      setOrders(data);
+      console.log("auth?.token", auth?.token);
+      const { data } = await axios.get("/api/v1/auth/orders", {
+        headers: {
+          Authorization: `Bearer ${auth?.token}`,
+        },
+      });
+      setOrders(data?.orders || []);
     } catch (error) {
-      console.log(error);
+      console.error("Error fetching orders:", error);
     }
   };
 
@@ -35,12 +40,13 @@ const Orders = () => {
                   <table className="table">
                     <thead>
                       <tr>
-                        <th scope="col">#</th>
+                        <th scope="col">NO</th>
                         <th scope="col">Status</th>
                         <th scope="col">Buyer</th>
-                        <th scope="col"> date</th>
+                        <th scope="col">Address</th>
+                        <th scope="col">Date</th>
                         <th scope="col">Payment</th>
-                        <th scope="col">Quantity</th>
+                        <th scope="col">Price</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -48,9 +54,10 @@ const Orders = () => {
                         <td>{i + 1}</td>
                         <td>{o?.status}</td>
                         <td>{o?.buyer?.name}</td>
-                        <td>{moment(o?.createAt).fromNow()}</td>
-                        <td>{o?.payment.success ? "Success" : "Failed"}</td>
-                        <td>{o?.products?.length}</td>
+                        <td>{o?.buyer?.address}</td>
+                        <td>{moment(o?.createdAt).fromNow()}</td>
+                        <td>{o?.payment?.success ? "Failed":"Success"}</td>
+                        <td>{o?.amount}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -59,7 +66,7 @@ const Orders = () => {
                       <div className="row mb-2 p-3 card flex-row" key={p._id}>
                         <div className="col-md-4">
                           <img
-                            src={`/api/v1/product/product-photo/${p._id}`}
+                            src={`/api/v1/product/product-photo/${p.product}`}
                             className="card-img-top"
                             alt={p.name}
                             width="100px"
@@ -68,8 +75,8 @@ const Orders = () => {
                         </div>
                         <div className="col-md-8">
                           <p>{p.name}</p>
-                          <p>{p.description.substring(0, 30)}</p>
                           <p>Price : {p.price}</p>
+                          <p>Quantity : {p.quantity}</p>
                         </div>
                       </div>
                     ))}

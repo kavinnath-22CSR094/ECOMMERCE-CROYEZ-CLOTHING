@@ -3,6 +3,7 @@ import Layout from "./../../components/Layout/Layout";
 import AdminMenu from "./../../components/Layout/AdminMenu";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { useAuth } from "../../context/auth";
 import { Select } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 const { Option } = Select;
@@ -22,6 +23,8 @@ const UpdateProduct = () => {
   const [size, setSize] = useState("");
   const [color, setColor] = useState("");
   const [pattern, setPattern] = useState("");
+  const [brand, setBrand] = useState("");
+  const [auth, setAuth] = useAuth();
 
   // Get single product
   const getSingleProduct = async () => {
@@ -39,14 +42,15 @@ const UpdateProduct = () => {
       setSize(data.product.size);
       setColor(data.product.color);
       setPattern(data.product.pattern);
+      setBrand(data.product.brand);
     } catch (error) {
       console.log(error);
     }
   };
 
   useEffect(() => {
-    getSingleProduct();
-  }, []);
+    if (auth?.token)getSingleProduct();
+  }, [auth?.token]);
 
   // Get all category
   const getAllCategory = async () => {
@@ -79,13 +83,21 @@ const UpdateProduct = () => {
       productData.append("size", size);
       productData.append("color", color);
       productData.append("pattern", pattern);
+      productData.append("brand", brand);
+
       const { data } = await axios.put(
         `/api/v1/product/update-product/${id}`,
-        productData
+        productData,
+        {
+          headers: {
+            Authorization: `Bearer ${auth?.token}`, // Include token
+          },
+        }
       );
+
       if (data?.success) {
         toast.success("Product Updated Successfully");
-      } else {        
+      } else {
         toast.error(data?.message);
       }
     } catch (error) {
@@ -232,6 +244,15 @@ const UpdateProduct = () => {
                   placeholder="write a pattern"
                   className="form-control"
                   onChange={(e) => setPattern(e.target.value)}
+                />
+              </div>
+              <div className="mb-3">
+                <input
+                  type="text"
+                  value={brand}
+                  placeholder="write a brand"
+                  className="form-control"
+                  onChange={(e) => setBrand(e.target.value)}
                 />
               </div>
               <div className="mb-3">

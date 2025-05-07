@@ -3,6 +3,7 @@ import Layout from "./../components/Layout/Layout";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/ProductDetailsStyles.css";
+import { useAuth } from "../context/auth";
 
 import toast from "react-hot-toast";
 import { useCart } from "../context/cart";
@@ -13,6 +14,7 @@ const ProductDetails = () => {
   const [cart, setCart] = useCart();
   const [product, setProduct] = useState({});
   const [relatedProducts, setRelatedProducts] = useState([]);
+  const [auth, setAuth] = useAuth();
 
   // Initial details
   useEffect(() => {
@@ -41,6 +43,41 @@ const ProductDetails = () => {
       setRelatedProducts(data?.products);
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  const HandleAddToCart = async (product) => {
+    try {
+      if (!auth?.user) {
+        toast.error("Please login to add items to cart");
+        navigate("/login", { state: { from: "http://localhost:3000/login" } });
+        return;
+      }
+  
+      const { data } = await axios.post(
+        "/api/v1/user/cart/add",
+        { product: product._id, quantity: 1 },
+        {
+          headers: {
+            Authorization: `Bearer ${auth.token}`,
+          },
+        }
+      );
+  
+      if (data?.success) {
+        setCart(data.cart);
+        toast.success(`${product.name} added to cart`);
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      if (error.response?.status === 401) {
+        toast.error("Session expired. Please login again");
+        localStorage.removeItem("auth");
+        setAuth(null);
+        navigate("/login");
+      } else {
+        toast.error("Failed to add item to cart");
+      }
     }
   };
 
@@ -74,15 +111,13 @@ const ProductDetails = () => {
           <h6>Size : {product.size}</h6>
           <h6>Color : {product.color}</h6>
           <h6>Pattern : {product.pattern}</h6>
-          <button className="btn btn-dark ms-1"
-                      onClick={() => {
-                        setCart([...cart, product]);
-                        localStorage.setItem(
-                          "cart",
-                          JSON.stringify([...cart, product])
-                        );
-                        toast.success("Item Added to cart");
-                      }}>ADD TO CART</button>
+          <h6>Brand : {product.brand}</h6>
+          <button
+        className="btn btn-dark ms-1"
+        onClick={() => HandleAddToCart(product)}
+      >
+        ADD TO CART
+      </button>
         </div>
       </div>
       <hr />

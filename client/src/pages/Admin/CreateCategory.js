@@ -5,19 +5,27 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import CategoryForm from "../../components/Form/CategoryForm";
 import { Modal } from "antd";
+import { useAuth } from "../../context/auth";
 const CreateCategory = () => {
   const [categories, setCategories] = useState([]);
   const [name, setName] = useState("");
   const [visible, setVisible] = useState(false);
   const [selected, setSelected] = useState(null);
   const [updatedName, setUpdatedName] = useState("");
+  const [auth, setAuth] = useAuth();
   //handle Form
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.post("/api/v1/category/create-category", {
-        name,
-      });
+      const { data } = await axios.post(
+        "/api/v1/category/create-category",
+        { name },
+        {
+          headers: {
+            Authorization: `Bearer ${auth?.token}`, // Include token
+          },
+        }
+      );
       if (data?.success) {
         toast.success(`${name} is created`);
         getAllCategory();
@@ -26,7 +34,7 @@ const CreateCategory = () => {
       }
     } catch (error) {
       console.log(error);
-      // toast.error("somthing went wrong in input form");
+      toast.error("Something went wrong in input form");
     }
   };
 
@@ -53,7 +61,12 @@ const CreateCategory = () => {
     try {
       const { data } = await axios.put(
         `/api/v1/category/update-category/${selected._id}`,
-        { name: updatedName }
+        { name: updatedName },
+        {
+          headers: {
+            Authorization: `Bearer ${auth?.token}`, // Include token
+          },
+        }
       );
       if (data?.success) {
         toast.success(`${updatedName} is updated`);
@@ -66,23 +79,29 @@ const CreateCategory = () => {
       }
     } catch (error) {
       console.log(error);
+      toast.error("Something went wrong");
     }
   };
   //delete category
   const handleDelete = async (pId) => {
     try {
       const { data } = await axios.delete(
-        `/api/v1/category/delete-category/${pId}`
+        `/api/v1/category/delete-category/${pId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${auth?.token}`, // Include token
+          },
+        }
       );
       if (data.success) {
-        toast.success(`category is deleted`);
-
+        toast.success(`Category is deleted`);
         getAllCategory();
       } else {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error("Somtihing went wrong");
+      console.log(error);
+      toast.error("Something went wrong");
     }
   };
   return (
