@@ -6,7 +6,6 @@ import axios from "axios";
 import { useAuth } from "../../context/auth";
 import { Select } from "antd";
 import { useNavigate } from "react-router-dom";
-import { p } from "framer-motion/client";
 const { Option } = Select;
 
 const CreateProduct = () => {
