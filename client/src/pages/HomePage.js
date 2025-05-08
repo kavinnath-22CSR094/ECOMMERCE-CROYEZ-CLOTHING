@@ -221,7 +221,7 @@ const HomePage = () => {
     try {
       if (!auth?.user) {
         toast.error("Please login to add items to cart");
-        navigate("/login", { state: { from: "http://localhost:3000/login" } });
+        navigate("/login", { state: { from: "https://croyezclothing.vercel.app/login" } });
         return;
       }
   
