@@ -52,7 +52,7 @@ const CreateSize = () => {
     e.preventDefault();
     try {
       const { data } = await axios.put(
-        `/api/v1/size/update-size/${selected._id}`,
+        `${process.env.REACT_APP_API}/api/v1/size/update-size/${selected._id}`,
         { name: updatedName }
       );
       if (data?.success) {
@@ -72,7 +72,7 @@ const CreateSize = () => {
   const handleDelete = async (pId) => {
     try {
       const { data } = await axios.delete(
-        `/api/v1/size/delete-size/${pId}`
+        `${process.env.REACT_APP_API}/api/v1/size/delete-size/${pId}`
       );
       if (data.success) {
         toast.success(`category is deleted`);

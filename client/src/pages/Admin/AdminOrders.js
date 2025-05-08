@@ -22,7 +22,7 @@ const AdminOrders = () => {
   const getOrders = async () => {
     try {
       console.log("auth?.token", auth?.token);
-      const { data } = await axios.get("/api/v1/auth/all-orders", {
+      const { data } = await axios.get(`${process.env.REACT_APP_API}/api/v1/auth/all-orders`, {
         headers: {
           Authorization: `Bearer ${auth?.token}`,
         },
@@ -79,7 +79,7 @@ const AdminOrders = () => {
                     <div className="row mb-2 p-3 card flex-row" key={p._id}>
                       <div className="col-md-4">
                         <img
-                          src={`/api/v1/product/product-photo/${p.product}`}
+                          src={`${process.env.REACT_APP_API}/api/v1/product/product-photo/${p.product}`}
                           className="card-img-top"
                           alt={p.name}
                           width="100px"

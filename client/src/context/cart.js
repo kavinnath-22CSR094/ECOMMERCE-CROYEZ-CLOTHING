@@ -15,7 +15,7 @@ const CartProvider = ({ children }) => {
 
   const getCart = async () => {
     try {
-      const { data } = await axios.get("/api/v1/user/cart", {
+      const { data } = await axios.get(`${process.env.REACT_APP_API}/api/v1/user/cart`, {
         headers: {
           Authorization: `Bearer ${auth?.token}`,
         },

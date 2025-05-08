@@ -34,7 +34,7 @@ const CartPage = () => {
   //detele item
   const removeCartItem = async (pid) => {
     try {
-      const { data } = await axios.delete(`/api/v1/user/cart/remove/${pid}`, {
+      const { data } = await axios.delete(`${process.env.REACT_APP_API}/api/v1/user/cart/remove/${pid}`, {
         headers: {
           Authorization: `Bearer ${auth.token}`
         }
@@ -46,7 +46,7 @@ const CartPage = () => {
         toast.success("Item removed from cart");
         
         // Optional: Refresh cart from server to ensure sync
-        const { data: updatedCart } = await axios.get("/api/v1/user/cart", {
+        const { data: updatedCart } = await axios.get(`${process.env.REACT_APP_API}/api/v1/user/cart`, {
           headers: {
             Authorization: `Bearer ${auth.token}`
           }
@@ -62,7 +62,7 @@ const CartPage = () => {
   //get payment gateway token
   const getToken = async () => {
     try {
-      const { data } = await axios.get("/api/v1/product/braintree/token");
+      const { data } = await axios.get(`${process.env.REACT_APP_API}/api/v1/product/braintree/token`);
       setClientToken(data?.clientToken);
     } catch (error) {
       console.log(error);
@@ -97,7 +97,7 @@ const CartPage = () => {
       };
   
       // 3. Submit payment
-      const { data } = await axios.post("/api/v1/product/braintree/payment",
+      const { data } = await axios.post(`${process.env.REACT_APP_API}/api/v1/product/braintree/payment`,
         paymentData,
         {
           headers: {
@@ -144,7 +144,7 @@ const CartPage = () => {
           <div className="row card flex-row" key={item.product._id}>
             <div className="col-md-4">
               <img
-                src={`/api/v1/product/product-photo/${item.product._id}`}
+                src={`${process.env.REACT_APP_API}/api/v1/product/product-photo/${item.product._id}`}
                 className="card-img-top"
                 alt={item.product.name}
                 width="100%"
