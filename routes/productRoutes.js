@@ -14,6 +14,7 @@ import {
   realtedProductController,
   searchProductController,
   updateProductController,
+  razorpayPaymentController
 } from "../controllers/productController.js";
 import { isAdmin, requireSignIn } from "../middlewares/authMiddleware.js";
 import formidable from "express-formidable";
@@ -73,5 +74,9 @@ router.get("/braintree/token", braintreeTokenController);
 
 //payments
 router.post("/braintree/payment", requireSignIn, braintreePaymentController);
+
+// Razorpay payment route
+router.post("/razorpay/payment", requireSignIn, razorpayPaymentController);
+
 
 export default router;

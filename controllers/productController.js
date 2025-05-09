@@ -7,6 +7,8 @@ import slugify from "slugify";
 import braintree from "braintree";
 import dotenv from "dotenv";
 
+import Razorpay from "razorpay";
+
 dotenv.config();
 
 //payment gateway
@@ -16,6 +18,13 @@ var gateway = new braintree.BraintreeGateway({
   publicKey: process.env.BRAINTREE_PUBLIC_KEY,
   privateKey: process.env.BRAINTREE_PRIVATE_KEY,
 });
+
+
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
+
 
 export const createProductController = async (req, res) => {
   try {
@@ -475,6 +484,50 @@ export const braintreePaymentController = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Internal server error during payment processing",
+      error: error.message,
+    });
+  }
+};
+
+export const razorpayPaymentController = async (req, res) => {
+  try {
+    const { razorpayPaymentId, cart, amount } = req.body;
+
+    // Verify payment (optional, for extra security)
+    // You can use Razorpay’s signature verification here if you capture signatures on the frontend.
+
+    // Fetch product prices from the database
+    const productIds = cart.map((item) => item.product);
+    const products = await productModel.find({ _id: { $in: productIds } });
+
+    const cartWithPrices = cart.map((item) => {
+      const product = products.find((p) => p._id.toString() === item.product);
+      if (!product) {
+        throw new Error(`Product with ID ${item.product} not found`);
+      }
+      return { ...item, price: product.price };
+    });
+
+    // Save order to the database
+    const order = new orderModel({
+      products: cartWithPrices,
+      transactionId: razorpayPaymentId,
+      amount,
+      buyer: req.user._id,
+    });
+
+    await order.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Razorpay payment recorded and order saved successfully",
+      order,
+    });
+  } catch (error) {
+    console.error("Razorpay order saving error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to save Razorpay order",
       error: error.message,
     });
   }
