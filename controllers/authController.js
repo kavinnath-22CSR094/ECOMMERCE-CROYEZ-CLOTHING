@@ -206,7 +206,7 @@ export const getOrdersController = async (req, res) => {
   try {
     const orders = await orderModel
       .find({ buyer: req.user._id })
-      .populate("buyer", "name email address") // Populate buyer details
+      .populate("buyer", "name email address phone") // Populate buyer details
       .populate("amount")
       .populate("products", "name price") // Populate product details
       .lean();
@@ -230,7 +230,7 @@ export const getAllOrdersController = async (req, res) => {
   try {
     const orders = await orderModel
       .find({})
-      .populate("buyer", "name email address") // Populate buyer details
+      .populate("buyer", "name email address phone") // Populate buyer details
       .populate("amount")
       .populate("products", "name price") // Populate product details
       .sort({ createdAt: -1 }) // Sort by createdAt in descending order
